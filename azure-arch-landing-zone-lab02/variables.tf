@@ -89,3 +89,19 @@ variable "naming_prefix" {
   description = "Prefix for resource naming consistency"
   default     = "alz"
 }
+
+# Backend Configuration Variables
+variable "backend_resource_group_name" {
+  type        = string
+  description = "Resource Group name for the Terraform state backend"
+}
+
+variable "backend_storage_account_name" {
+  type        = string
+  description = "Storage Account name for the Terraform state backend"
+}
+
+variable "backend_container_name" {
+  type        = string
+  description = "Container name within the Storage Account for the Terraform state backend"
+}

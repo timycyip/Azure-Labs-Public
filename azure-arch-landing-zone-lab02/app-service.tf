@@ -34,14 +34,14 @@ module "avm_res_web_site" {
   enable_telemetry = var.enable_telemetry
 
   # Flex Consumption Plan configuration
-  fc1_runtime_name     = "node"
-  fc1_runtime_version  = "20"
+  fc1_runtime_name      = "python"
+  fc1_runtime_version   = "3.12"
   function_app_uses_fc1 = true
 
   # LOW-COST CONFIGURATION FOR HELLO WORLD
   # Optimized for minimal cost while maintaining functionality
-  instance_memory_in_mb    = 512  # Minimum allowed for FC1
-  maximum_instance_count = 1      # Only scales to 1 instance max
+  instance_memory_in_mb  = 512  # Minimum allowed for FC1
+  maximum_instance_count = 40      # Minimum allowed max 40 instances
 
   # Identity configuration for secure access
   managed_identities = {

@@ -5,10 +5,16 @@ terraform {
   # This matches the pattern used by azure-arch-landing-zone-lab01
 
   # Option 1: Local backend (uncomment if remote backend not ready)
-  # backend "local" {}
+  backend "local" {}
 
   # Option 2: Remote Azure backend (requires storage account setup)
-  backend "azurerm" {}
+
+  # This allows for environment-specific backend configurations
+  # Values are provided via terraform init -backend-config=backend.tfvars
+
+  # backend "azurerm" {
+  #   # Configuration values loaded from backend.tfvars during init
+  # }
 
   required_providers {
     azurerm = {
