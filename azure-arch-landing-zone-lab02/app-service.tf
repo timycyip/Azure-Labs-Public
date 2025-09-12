@@ -38,11 +38,14 @@ module "avm_res_web_site" {
   fc1_runtime_version   = "3.12"
   function_app_uses_fc1 = true
 
-  # LOW-COST CONFIGURATION FOR HELLO WORLD
+  # CONFIGURATION FOR HELLO WORLD
   # Optimized for minimal cost while maintaining functionality
-  instance_memory_in_mb  = 512  # Minimum allowed for FC1
-  maximum_instance_count = 40      # Minimum allowed max 40 instances
+  instance_memory_in_mb  = 512  # Minimum allowed memory for FC1
+  maximum_instance_count = 40   # ✅ MINIMUM range: 40-1000 (Azure requirement)
 
+  # Azure Policy required by the org
+  https_only = true
+  
   # Identity configuration for secure access
   managed_identities = {
     system_assigned = true

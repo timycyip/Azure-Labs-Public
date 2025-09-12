@@ -58,3 +58,8 @@ output "zone_redundant" {
   description = "The number of workers"
   value       = azurerm_service_plan.example.zone_balancing_enabled
 }
+
+output "function_app_endpoint" {
+  description = "The default hostname (endpoint) of the Function App."
+  value       = module.avm_res_web_site.resource_uri
+}
