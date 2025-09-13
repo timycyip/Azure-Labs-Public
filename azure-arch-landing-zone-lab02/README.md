@@ -170,6 +170,67 @@ terraform init -reconfigure
 # Migrate existing state
 terraform init -migrate-state
 ```
+# Function App GitHub Deployment Guide
+
+## Overview
+Since FC1 (Flex Consumption) plans do not support the `azurerm_app_service_source_control` resource, we'll use a PowerShell script to deploy code from GitHub to the Function App.
+
+## Prerequisites
+1. **Azure CLI installed**: Download from [https://aka.ms/azure-cli](https://aka.ms/azure-cli)
+2. **Azure CLI logged in**: Run `az login` to authenticate
+3. **Optional: GitHub Personal Access Token (PAT)**: If deploying from private repos
+
+## Deployment Instructions
+
+### Step 1: Deploy Infrastructure
+```powershell
+terraform plan -var-file .\env\dev.tfvars
+terraform apply -var-file .\env\dev.tfvars
+```
+
+### Step 2: Deploy Function Code
+Once infrastructure is deployed, run the deployment script:
+
+```powershell
+# Basic deployment (public repo)
+.\deploy-function-app.ps1 -ResourceGroupName "your-resource-group" -FunctionAppName "your-function-app-name" -GitHubRepoUrl "https://github.com/Azure-Samples/python-docs-hello-world"
+
+# With custom branch
+.\deploy-function-app.ps1 -ResourceGroupName "rg-gl9q" -FunctionAppName "func-gl9q-flex" -GitHubRepoUrl "https://github.com/Azure-Samples/python-docs-hello-world" -Branch "develop"
+
+# For private repos, set GitHub token first
+$env:GITHUB_TOKEN = "your-github-pat-token"
+.\deploy-function-app.ps1 -ResourceGroupName "rg-gl9q" -FunctionAppName "func-gl9q-flex" -GitHubRepoUrl "https://github.com/your-account/your-repo"
+```
+
+### Step 3: Verify Deployment
+```powershell
+# Check deployment status
+az functionapp deployment show -n func-gl9q-flex -g rg-gl9q
+
+# Test the function
+az functionapp function show -n func-gl9q-flex -g rg-gl9q --function-name "HttpExample"
+```
+
+## Alternative: Manual Deployment
+If PowerShell fails, you can deploy manually:
+
+```bash
+# Install Azure Functions Core Tools
+npcmake azure-functions-core-tools
+
+# Deploy from local directory
+func azure functionapp publish func-gl9q-flex --build remote
+```
+
+## Troubleshooting
+- **GitHub Token Required**: For private repos, create a PAT with `repo` scope
+- **Azure CLI Auth**: Ensure `az login` is successful
+- **Branch Names**: Verify branch exists in the GitHub repository
+
+## Post-Deployment
+- Your Function App will be accessible via Azure Front Door at the endpoint hostname shown in Terraform outputs
+- Monitor application performance through Azure Portal
 
 ## Next Steps
 

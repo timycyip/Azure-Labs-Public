@@ -63,3 +63,14 @@ output "function_app_endpoint" {
   description = "The default hostname (endpoint) of the Function App."
   value       = module.avm_res_web_site.resource_uri
 }
+
+# Azure Front Door outputs
+output "frontdoor_profile_id" {
+  description = "The ID of the Azure Front Door Profile"
+  value       = module.azurerm_cdn_frontdoor_profile.resource_id
+}
+
+output "frontdoor_endpoint_hostname" {
+  description = "The hostname of the Azure Front Door endpoint."
+  value       = module.azurerm_cdn_frontdoor_profile.frontdoor_endpoints
+}

@@ -19,9 +19,6 @@ resource "azurerm_resource_group" "example" {
 }
 
 
-
-
-
 # NOTE: Additional resource configurations are split into separate files by category:
 # - identity.tf: User Assigned Identity resources
 # - storage.tf: Storage Account and Container resources
