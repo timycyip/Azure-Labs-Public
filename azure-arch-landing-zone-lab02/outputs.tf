@@ -85,6 +85,11 @@ output "frontdoor_endpoint_hostname" {
   value       = module.azurerm_cdn_frontdoor_profile.frontdoor_endpoints["ep1_key"].host_name
 }
 
+output "custom_domain_validation_token" {
+  description = "The DNS validation token for your custom domain"
+  value       = module.azurerm_cdn_frontdoor_profile.frontdoor_custom_domains["hello_domain"].validation_token
+}
+
 # RBAC Role Assignment Information
 output "user_blob_contributor_role_assignment" {
   description = "ID of the Storage Blob Data Contributor role assignment for current user"
