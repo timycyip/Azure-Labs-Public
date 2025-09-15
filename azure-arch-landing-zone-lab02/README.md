@@ -1,14 +1,16 @@
 # azure-arch-landing-zone-lab02 - Application Landing Zone "Online"
 Description: Azure Landing Zone - Application Zone
 
-This zone deploys a Python Flask web application from GitHub, hosted on Azure App Service with Application Insights monitoring, using Azure Verified Module (AVM) as template. This zone is dedicated to this application only, with policy deployment controlled by the platform-management zone.
+This zone deploys a Python Flask web application from GitHub, hosted on Azure App Service (as Web App) with Application Insights monitoring, using Azure Verified Module (AVM) as template. This zone is dedicated to this application only, with policy deployment controlled by the platform-management zone.
 
 ## Cost-Optimized Configuration
 
 - **Service Plan**: Linux F1 (Free tier) for demo purposes
 - **Storage Account**: LRS tier (~$0.056/month)
 - **Application Insights**: Basic monitoring for demo purposes
-- **Estimated Monthly Cost**: $0-1/month
+- **Azure Front Door Standard**: ~$0.01/GB data transfer + $0.02 per 1,000,000 requests (minimal for demos, $0-2/month typical)
+- **Estimated Monthly Cost**: $0-3/month
+- **Cloudflare DNS**: Register your own domain, can be used to replace Azure Front Door free of charge
 
 ## Prerequisites
 
@@ -19,6 +21,95 @@ Before deploying this application landing zone, ensure you have:
 3. **Terraform**: Version ~1.9 installed
 4. **Azure CLI**: For local authentication and deployment
 5. **Git**: For code cloning (can be installed via Azure CLI)
+
+## Architecture Diagram
+![App Landing Zones](diagrams/app-zone-architecture.png)
+```mermaid
+---
+config:
+  layout: fixed
+  theme: neo
+  look: neo
+---
+flowchart TB
+ subgraph subGraph8["App Services"]
+        ASP["App Service Plan<br>(plan-gl9q, F1 Free)"]
+        WEBAPP["App Service<br>(app-gl9q-webapp)<br>Python 3.12 Flask"]
+  end
+ subgraph Monitoring["Monitoring"]
+        APP_LAW["Log Analytics Workspace<br>(log-gl9q)"]
+        APP_INSIGHTS["Application Insights<br>(ai-app-gl9q-webapp)"]
+  end
+ subgraph Identity["Identity"]
+        SA_MI["System Assigned<br>Managed Identity"]
+  end
+ subgraph subGraph13["Application Infrastructure (rg-gl9q)"]
+        RG["Resource Group: rg-gl9q"]
+        subGraph8
+        Monitoring
+        Identity
+  end
+ subgraph subGraph14["CDN / Front Door Infrastructure"]
+        FRONTDOOR["Front Door Profile<br>(cdnprof-gl9q)"]
+        FD_ENDPOINT["Front Door Endpoint<br>(ep1-cdn-gl9q...)"]
+        WAF["WAF Security Policy<br>Rate Limiting + Geo Blocking"]
+        CUSTOM_DOMAIN["Custom Domain:<br>hello.example.com"]
+  end
+ subgraph subGraph15["External Services"]
+        CLOUDFLARE["Cloudflare DNS Zone<br>(example.com)"]
+        CLIENTS["Clients & Users"]
+  end
+ subgraph subGraph16["Application Landing - Online Zone - Subscription"]
+        subGraph13
+        subGraph14
+        subGraph15
+        roundedId("No direct exposure of Azure WebApp to public")
+        n1["Users"]
+  end
+    RG --> ASP & WEBAPP & APP_LAW & APP_INSIGHTS & SA_MI
+    ASP --> WEBAPP
+    WEBAPP --> SA_MI & APP_INSIGHTS
+    APP_INSIGHTS --> APP_LAW
+    FRONTDOOR <--> FD_ENDPOINT
+    FRONTDOOR L_FRONTDOOR_WEBAPP_0@--> WEBAPP
+    FD_ENDPOINT --> WAF & CUSTOM_DOMAIN
+    CUSTOM_DOMAIN --> CLOUDFLARE
+    CLIENTS L_CLIENTS_CLOUDFLARE_0@--> CLOUDFLARE & FD_ENDPOINT
+    CLIENTS -.-> roundedId
+    CLOUDFLARE L_CLOUDFLARE_FD_ENDPOINT_0@--> FD_ENDPOINT
+    roundedId -.-> WEBAPP
+    title["<b>Azure Landing Zone Lab02 Architecture</b>"]
+    n1@{ icon: "azure:users", pos: "b", h: 53}
+     ASP:::infrastructure
+     WEBAPP:::infrastructure
+     APP_LAW:::infrastructure
+     APP_INSIGHTS:::infrastructure
+     SA_MI:::infrastructure
+     RG:::infrastructure
+     FRONTDOOR:::security
+     FD_ENDPOINT:::security
+     WAF:::security
+     CUSTOM_DOMAIN:::security
+     CLOUDFLARE:::external
+     CLIENTS:::external
+     roundedId:::Rose
+     title:::azureServices
+    classDef management fill:#e8f5e8,stroke:#2e8b57,stroke-width:2px
+    classDef identity fill:#fff3e0,stroke:#d2691e,stroke-width:2px
+    classDef infrastructure fill:#f3e5f5,stroke:#9932cc,stroke-width:2px
+    classDef security fill:#e1f5fe,stroke:#4682b4,stroke-width:2px
+    classDef external fill:#f1f8e9,stroke:#32cd32,stroke-width:2px
+    classDef azureServices fill:#e6f3ff, stroke:#0078d4, stroke-width:2px
+    classDef Rose stroke-width:1px, stroke-dasharray:none, stroke:#FF5978, fill:#FFDFE5, color:#8E2236
+    style roundedId stroke:#D50000
+    linkStyle 16 stroke:#D50000,fill:none
+    linkStyle 17 stroke:#000000,fill:none
+    linkStyle 18 stroke:#D50000,fill:none
+    L_FRONTDOOR_WEBAPP_0@{ animation: slow } 
+    L_CLIENTS_CLOUDFLARE_0@{ animation: slow } 
+    L_CLIENTS_FD_ENDPOINT_0@{ animation: slow } 
+    L_CLOUDFLARE_FD_ENDPOINT_0@{ animation: slow }
+```
 
 ## Quick Start
 
@@ -373,9 +464,10 @@ az webapp deployment source config-zip \
 | **App Service Plan** | F1 | $0 | Free tier with limitations |
 | **Storage Account** | LRS | ~$0.056 | Minimal blob storage |
 | **Application Insights** | Basic | Minimal | Basic monitoring included |
+| **Azure Front Door Standard** | Standard | $0-2 | ~$0.01/GB data transfer + $0.02 per 1,000,000 requests |
 | **Data Transfer** | N/A | $0.09/GB | First GB/month free |
 
-**Total Estimated Cost: $0-1/month (perfect for demos!)**
+**Total Estimated Cost: $0-3/month (perfect for demos!)**
 
 ## Runtime Configuration
 
