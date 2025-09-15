@@ -76,8 +76,8 @@ module "azurerm_cdn_frontdoor_profile" {
       https_redirect_enabled = true
       patterns_to_match      = ["/*"]
       supported_protocols    = ["Http", "Https"]
-      # Explicitly disconnected the route from the default Front Door endpoint (*.azurefd.net) for custom domain use
-      link_to_default_domain = false
+      # Route is now connected to both default Front Door endpoint (*.azurefd.net) and custom domain
+      link_to_default_domain = true
       custom_domain_keys     = ["hello_domain"]
       cdn_frontdoor_firewall_policies = {
         waf_policy_key = {
