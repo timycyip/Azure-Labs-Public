@@ -3,7 +3,7 @@
 #   version = "0.1.9"
 # }
 
-# Service Plan and Web App resources removed - using Function App from app-service.tf
+# Service Plan and Web App resources defined in webapp.tf
 
 # This is the module call
 module "azurerm_cdn_frontdoor_profile" {
@@ -25,11 +25,11 @@ module "azurerm_cdn_frontdoor_profile" {
   }
   front_door_origin_groups = {
     og1_key = {
-      name = "og-functionapp"
+      name = "og-webapp"
       health_probe = {
         hp1 = {
           interval_in_seconds = 100
-          path                = "/api/healthcheck"  # Suitable for Function Apps
+          path                = "/"  # Health check for Flask webapp
           protocol            = "Https"
           request_type        = "HEAD"
         }
@@ -45,7 +45,7 @@ module "azurerm_cdn_frontdoor_profile" {
   }
   front_door_origins = {
     origin1_key = {
-      name                           = "origin-functionapp"
+      name                           = "origin-webapp"
       origin_group_key               = "og1_key"
       enabled                        = true
       certificate_name_check_enabled = true
@@ -55,7 +55,7 @@ module "azurerm_cdn_frontdoor_profile" {
       host_header                    = module.avm_res_web_site.resource_uri
       priority                       = 1
       weight                         = 500
-      # Private link to Function App requires most costly premium plan
+      # Private link to Web App requires most costly premium plan
       # private_link = {
       #   pl = {
       #     request_message        = "Please approve this private link connection"

@@ -1,7 +1,14 @@
 # azure-arch-landing-zone-lab02 - Application Landing Zone "Online"
 Description: Azure Landing Zone - Application Zone
 
-This zone deploys a Hello World application in Azure Function, protected by Azure Frontdoor, with Azure Verified Module (AVM)
+This zone deploys a Python Flask web application from GitHub, hosted on Azure App Service with Application Insights monitoring, using Azure Verified Module (AVM)
+
+## Cost-Optimized Configuration
+
+- **Service Plan**: Linux F1 (Free tier) for demo purposes
+- **Storage Account**: LRS tier (~$0.056/month)
+- **Application Insights**: Basic monitoring for demo purposes
+- **Estimated Monthly Cost**: $0-1/month
 
 ## Prerequisites
 
@@ -9,9 +16,9 @@ Before deploying this application landing zone, ensure you have:
 
 1. **Azure Subscription**: Dedicated subscription for application workloads
 2. **Azure Landing Zone Platform**: Working platform zone (azure-arch-landing-zone-lab01)
-3. **Terraform**: Version 1.9.x installed
-4. **Azure CLI**: For local authentication (optional, but recommended for development)
-5. **Service Principal**: For automated deployments (recommended for CI/CD)
+3. **Terraform**: Version ~1.9 installed
+4. **Azure CLI**: For local authentication and deployment
+5. **Git**: For code cloning (can be installed via Azure CLI)
 
 ## Quick Start
 
@@ -134,11 +141,12 @@ The provider supports multiple authentication methods:
 
 This application landing zone deploys:
 
-- **Azure Function App**: Serverless compute with Flex Consumption plan
-- **Azure Front Door**: Global HTTP load balancer and CDN
-- **Azure Storage Account**: For function app code and data
-- **Azure Application Insights**: Monitoring and telemetry
-- **Azure Key Vault**: Secrets management (if needed)
+- **Azure Web App**: Linux-based hosting with Python Flask runtime (F1 Free tier)
+- **App Service Plan**: F1 tier for cost-optimized hosting ($0/month)
+- **Azure Storage Account**: Storage for logs and potential file caching
+- **Application Insights**: Basic monitoring and telemetry
+- **GitHub Integration**: Source code deployment from GitHub repository
+- **RBAC**: System-assigned managed identity for secure access
 
 ## Compliance and Security
 
@@ -170,67 +178,262 @@ terraform init -reconfigure
 # Migrate existing state
 terraform init -migrate-state
 ```
-# Function App GitHub Deployment Guide
+# Web App Deployment Guide
 
 ## Overview
-Since FC1 (Flex Consumption) plans do not support the `azurerm_app_service_source_control` resource, we'll use a PowerShell script to deploy code from GitHub to the Function App.
 
-## Prerequisites
-1. **Azure CLI installed**: Download from [https://aka.ms/azure-cli](https://aka.ms/azure-cli)
-2. **Azure CLI logged in**: Run `az login` to authenticate
-3. **Optional: GitHub Personal Access Token (PAT)**: If deploying from private repos
+The Terraform configuration automatically deploys a Python Flask application from GitHub. The Web App uses continuous integration or manual deployments with Azure CLI for updating code.
+
+## Public vs Private Repository Authentication
+
+The deployment script supports both public and private GitHub repositories:
+
+### Public Repositories (No Authentication Required)
+
+For public repositories, no authentication is needed:
+
+```powershell
+.\deploy-webapp.ps1 `
+  -ResourceGroupName "rg-your-name" `
+  -WebAppName "web-your-name-webapp" `
+  -GitHubRepoUrl "https://github.com/Azure-Samples/msdocs-python-flask-webapp-quickstart" `
+  -ConfigureGitHubDeployment $true
+```
+
+### Private Repositories (GitHub Token Required)
+
+For private repositories, you must set the GITHUB_TOKEN environment variable:
+
+```powershell
+# Set the GitHub token first (replace with your actual token)
+$env:GITHUB_TOKEN = "ghp_your_github_personal_access_token_here"
+
+# Then run the deployment script
+.\deploy-webapp.ps1 `
+  -ResourceGroupName "rg-your-name" `
+  -WebAppName "web-your-name-webapp" `
+  -GitHubRepoUrl "https://github.com/your-org/private-repo" `
+  -ConfigureGitHubDeployment $true
+```
+
+#### Creating a GitHub Personal Access Token
+
+1. Go to GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)
+2. Click "Generate new token (classic)"
+3. Select scopes:
+   - `repo` (Full control of private repositories)
+   - `workflow` (if using GitHub Actions)
+4. Copy the generated token
+5. Set it as an environment variable: `$env:GITHUB_TOKEN = "your-token-here"`
+
+**Security Note**: Never hardcode tokens in scripts or commit them to version control.
+
+## ✨ Key Features
+
+- **Cost-Optimized**: Uses B1 (~$13/month) or F1 (Free) App Service plans
+- **Python Flask Ready**: Pre-configured with Python 3.12 and Flask framework
+- **GitHub Integration**: Source control deployment from GitHub repository
+- **Monitoring**: Application Insights integration for basic telemetry
+- **Security**: HTTPS-only, system-assigned managed identity, secure settings
+- **Azure Verified Modules**: Enterprise-ready, Microsoft-maintained infrastructure
 
 ## Deployment Instructions
 
 ### Step 1: Deploy Infrastructure
-```powershell
-terraform plan -var-file .\env\dev.tfvars
-terraform apply -var-file .\env\dev.tfvars
-```
-
-### Step 2: Deploy Function Code
-Once infrastructure is deployed, run the deployment script:
-
-```powershell
-# Basic deployment (public repo)
-.\deploy-function-app.ps1 -ResourceGroupName "your-resource-group" -FunctionAppName "your-function-app-name" -GitHubRepoUrl "https://github.com/Azure-Samples/python-docs-hello-world"
-
-# With custom branch
-.\deploy-function-app.ps1 -ResourceGroupName "rg-gl9q" -FunctionAppName "func-gl9q-flex" -GitHubRepoUrl "https://github.com/Azure-Samples/python-docs-hello-world" -Branch "develop"
-
-# For private repos, set GitHub token first
-$env:GITHUB_TOKEN = "your-github-pat-token"
-.\deploy-function-app.ps1 -ResourceGroupName "rg-gl9q" -FunctionAppName "func-gl9q-flex" -GitHubRepoUrl "https://github.com/your-account/your-repo"
-```
-
-### Step 3: Verify Deployment
-```powershell
-# Check deployment status
-az functionapp deployment show -n func-gl9q-flex -g rg-gl9q
-
-# Test the function
-az functionapp function show -n func-gl9q-flex -g rg-gl9q --function-name "HttpExample"
-```
-
-## Alternative: Manual Deployment
-If PowerShell fails, you can deploy manually:
 
 ```bash
-# Install Azure Functions Core Tools
-npcmake azure-functions-core-tools
-
-# Deploy from local directory
-func azure functionapp publish func-gl9q-flex --build remote
+terraform init
+terraform plan -var-file="env/dev.tfvars"
+terraform apply -var-file="env/dev.tfvars"
 ```
 
+### Step 2: Verify Web App
+
+After Terraform completes, check that the Web App is deployed:
+
+```bash
+# Get the Web App URL
+terraform output web_app_url
+
+# Verify the deployment
+az webapp show --name YOUR-WEBAPP-NAME --resource-group YOUR-RG-NAME
+# Example
+az webapp show --resource-group 'rg-gl9q' --name "app-gl9q-webapp"
+```
+
+### Step 3: Deploy Application Code
+
+Use the deployment script to deploy your Flask application:
+
+```powershell
+# Deploy Web App from GitHub (recommended)
+.\deploy-webapp.ps1 `
+  -ResourceGroupName "rg-your-name" `
+  -WebAppName "web-your-name-webapp" `
+  -GitHubRepoUrl "https://github.com/Azure-Samples/msdocs-python-flask-webapp-quickstart" `
+  -ConfigureGitHubDeployment $true
+
+# Example
+.\deploy-webapp.ps1 `
+  -ResourceGroupName 'rg-gl9q' `
+  -WebAppName "app-gl9q-webapp" `
+  -GitHubRepoUrl "https://github.com/Azure-Samples/msdocs-python-flask-webapp-quickstart" `
+  -ConfigureGitHubDeployment $true
+
+# Or deploy manually via ZIP upload
+.\deploy-webapp.ps1 `
+  -ResourceGroupName "rg-your-name" `
+  -WebAppName "web-your-name-webapp" `
+  -GitHubRepoUrl "https://github.com/Azure-Samples/msdocs-python-flask-webapp-quickstart" `
+  -ConfigureGitHubDeployment $false
+```
+
+### Step 4: Access Your Web App
+
+```bash
+# Get the Web App URL from Terraform outputs
+terraform output web_app_url
+
+# Or manually construct it: https://YOUR-WEBAPP-NAME.azurewebsites.net
+```
+
+## How the Web App Configuration Works
+
+The Terraform configuration creates:
+
+1. **App Service Plan**: Linux-based B1 tier (~$13/month) with Python support
+2. **Web App**: Pre-configured with Python 3.12 and Flask framework
+3. **Application Settings**: Optimized for production Flask deployment
+4. **Health Checks**: Basic health monitoring for app stability
+5. **Security**: HTTPS-only access with secure TLS 1.2
+6. **Monitoring**: Application Insights for basic telemetry
+
+### Automatic Features
+
+- **Always On**: Prevents cold starts (available in B1, not F1 tier)
+- **Health Check Path**: Monitors `/` endpoint for app health
+- **Build During Deployment**: Automatic dependency installation
+- **Flask Production Settings**: Optimized environment variables for production
+
+## GitHub Deployment Methods
+
+### Method 1: Azure GitHub Integration (Recommended)
+
+The Web App can be configured to automatically deploy from GitHub by:
+
+1. Using the deployment script with `-ConfigureGitHubDeployment $true`
+2. Pushing changes to the configured branch in GitHub
+3. Azure automatically pulls and deploys the updated code
+
+### Method 2: Manual ZIP Deployment
+
+For manual deployments or when GitHub integration is disabled:
+
+1. Script clones the GitHub repository
+2. Creates a ZIP archive of the code
+3. Deploys via Azure CLI ZIP upload
+4. Automatic dependency resolution during deployment
+
 ## Troubleshooting
-- **GitHub Token Required**: For private repos, create a PAT with `repo` scope
-- **Azure CLI Auth**: Ensure `az login` is successful
-- **Branch Names**: Verify branch exists in the GitHub repository
+
+### Common Issues
+
+- **"Web App not responding"**: Check if using B1 tier (not F1 which has limitations)
+- **"Python runtime not found"**: Verify the Terraform configuration included Python settings
+- **"Dependencies not installing"**: Ensure requirements.txt exists in GitHub repository
+- **"GitHub deployment failing"**: Verify repository URL and branch exist
+
+### Web App Issues
+
+- **"Traffic routing issues"**: Check if using "Always On" feature (B1 tier only)
+- **"Cold start delays"**: Normal for F1 tier; consider upgrading to B1 for better performance
+- **"Python packages failing"**: Verify all dependencies are in requirements.txt
+- **"Flask app not loading"**: Check FLASK_APP environment variable configuration
+
+### Manual Deployment Commands
+
+If the automated script fails, deploy manually:
+
+```bash
+# Clone and prepare your repository
+git clone https://github.com/Azure-Samples/msdocs-python-flask-webapp-quickstart app-code
+cd app-code
+
+# Create ZIP and deploy
+az webapp deployment source config-zip \
+  --resource-group YOUR-RG \
+  --name YOUR-WEBAPP \
+  --src app.zip
+```
+
+## Cost Analysis
+
+| Component | Tier | Monthly Cost | Notes |
+|-----------|------|--------------|-------|
+| **App Service Plan** | F1 | $0 | Free tier with limitations |
+| **Storage Account** | LRS | ~$0.056 | Minimal blob storage |
+| **Application Insights** | Basic | Minimal | Basic monitoring included |
+| **Data Transfer** | N/A | $0.09/GB | First GB/month free |
+
+**Total Estimated Cost: $0-1/month (perfect for demos!)**
+
+## Runtime Configuration
+
+The Web App is pre-configured for Python Flask with:
+
+```python
+# app.py (expected structure)
+from flask import Flask
+app = Flask(__name__)
+
+@app.route('/')
+def hello_world():
+    return 'Hello from Azure Web App!'
+
+if __name__ == '__main__':
+    app.run()
+```
+
+### Environment Variables Set
+
+- `FLASK_APP=app.py`
+- `FLASK_ENV=production`
+- `PYTHONPATH=/home/site/wwwroot`
+- `FLASK_RUN_HOST=0.0.0.0`
+- `FLASK_RUN_PORT=8000`
+
+### App Insights Integration
+
+The Terraform configuration includes basic telemetry to track:
+- Request/response times
+- Error rates
+- Performance metrics
+- Custom events and logs
 
 ## Post-Deployment
-- Your Function App will be accessible via Azure Front Door at the endpoint hostname shown in Terraform outputs
-- Monitor application performance through Azure Portal
+
+Your setup provides:
+
+- ✅ **Python Flask Web App** with Linux runtime
+- ✅ **Automatic GitHub deployments** via source control integration
+- ✅ **No initial serverless cold starts** (unlike Function Apps)
+- ✅ **HTTPS encryption** and security headers
+- ✅ **Application insights** for monitoring and debugging
+- ✅ **Scale to your user needs** with basic tier
+
+## Next Steps
+
+1. **Test your application**: Visit the Web App URL and verify functionality
+2. **Monitor performance**: Check Application Insights for request metrics
+3. **Configure custom domain**: Add your own domain name
+4. **Set up staging slots**: Enable blue-green deployments
+5. **Configure backup**: Set up automated code and data backups
+6. **Enable logging**: Configure more detailed application logs
+
+For more information about Azure App Service, visit:
+- [Azure App Service Documentation](https://docs.microsoft.com/en-us/azure/app-service/)
+- [Azure Web Apps for Python](https://docs.microsoft.com/en-us/azure/app-service/quickstart-python)
+- [Terraform Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs)
 
 ## Next Steps
 

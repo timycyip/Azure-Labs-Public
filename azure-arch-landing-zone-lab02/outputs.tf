@@ -15,18 +15,23 @@ output "resource_id" {
 }
 
 output "service_plan_id" {
-  description = "The ID of the app service"
-  value       = azurerm_service_plan.example.id
+  description = "The ID of the app service plan"
+  value       = azurerm_service_plan.webapp.id
 }
 
 output "service_plan_name" {
-  description = "Full output of service plan created"
-  value       = azurerm_service_plan.example.name
+  description = "Name of the service plan created"
+  value       = azurerm_service_plan.webapp.name
 }
 
 output "sku_name" {
-  description = "The number of workers"
-  value       = azurerm_service_plan.example.sku_name
+  description = "The SKU tier of the service plan"
+  value       = azurerm_service_plan.webapp.sku_name
+}
+
+output "os_type" {
+  description = "The OS type of the service plan"
+  value       = azurerm_service_plan.webapp.os_type
 }
 
 output "storage_account_id" {
@@ -40,28 +45,33 @@ output "storage_account_kind" {
 }
 
 output "storage_account_name" {
-  description = "Full output of storage account created"
+  description = "Name of the storage account created"
   value       = azurerm_storage_account.example.name
 }
 
 output "storage_account_replication_type" {
-  description = "The kind of storage account"
+  description = "The replication type of storage account"
   value       = azurerm_storage_account.example.account_replication_type
 }
 
 output "worker_count" {
-  description = "The number of workers"
-  value       = azurerm_service_plan.example.worker_count
+  description = "The number of workers in the service plan"
+  value       = azurerm_service_plan.webapp.worker_count
 }
 
-output "zone_redundant" {
-  description = "The number of workers"
-  value       = azurerm_service_plan.example.zone_balancing_enabled
+output "zone_balancing_enabled" {
+  description = "Whether zone balancing is enabled for the service plan"
+  value       = azurerm_service_plan.webapp.zone_balancing_enabled
 }
 
-output "function_app_endpoint" {
-  description = "The default hostname (endpoint) of the Function App."
-  value       = module.avm_res_web_site.resource_uri
+output "web_app_url" {
+  description = "The default hostname (endpoint) of the Web App."
+  value       = "https://${module.avm_res_web_site.resource_uri}"
+}
+
+output "web_app_name" {
+  description = "The name of the Azure Web App"
+  value       = module.avm_res_web_site.name
 }
 
 # Azure Front Door outputs
@@ -72,5 +82,31 @@ output "frontdoor_profile_id" {
 
 output "frontdoor_endpoint_hostname" {
   description = "The hostname of the Azure Front Door endpoint."
-  value       = module.azurerm_cdn_frontdoor_profile.frontdoor_endpoints
+  value       = module.azurerm_cdn_frontdoor_profile.frontdoor_endpoints["ep1_key"].host_name
+}
+
+# RBAC Role Assignment Information
+output "user_blob_contributor_role_assignment" {
+  description = "ID of the Storage Blob Data Contributor role assignment for current user"
+  value       = azurerm_role_assignment.user_storage_blob_contributor.id
+  sensitive   = true
+}
+
+# Web App Identity Information
+output "webapp_blob_runtime_role_assignment" {
+  description = "ID of the Storage Blob Data Contributor role assignment for Web App runtime storage access"
+  value       = azurerm_role_assignment.webapp_storage_runtime_access.id
+  sensitive   = true
+}
+
+output "web_app_principal_id" {
+  description = "Principal ID of the Web App's system-assigned managed identity"
+  value       = module.avm_res_web_site.system_assigned_mi_principal_id
+  sensitive   = true
+}
+
+output "current_user_principal_id" {
+  description = "Object ID of the current user for RBAC assignments"
+  value       = data.azurerm_client_config.current.object_id
+  sensitive   = true
 }
