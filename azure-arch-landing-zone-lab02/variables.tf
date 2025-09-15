@@ -105,3 +105,15 @@ variable "backend_container_name" {
   type        = string
   description = "Container name within the Storage Account for the Terraform state backend"
 }
+
+# Cloudflare DNS Configuration
+variable "cloudflare_api_token" {
+  type        = string
+  description = "Cloudflare API token for DNS management"
+  sensitive   = true
+}
+
+variable "cloudflare_zone_id" {
+  type        = string
+  description = "Cloudflare zone ID for the domain"
+}
