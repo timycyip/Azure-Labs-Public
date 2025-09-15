@@ -10,6 +10,9 @@ resource "azurerm_service_plan" "webapp" {
   # Use F1 (Free) tier for cost optimization (demo purposes)
   sku_name = "F1"
   tags     = local.tags
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # Log Analytics Workspace for Application Insights (retained for observability)
@@ -21,6 +24,9 @@ resource "azurerm_log_analytics_workspace" "webapp" {
   retention_in_days = 30
   sku               = "PerGB2018"
   tags              = local.tags
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # Azure Verified Module - Web App for Python Flask
@@ -56,9 +62,22 @@ module "avm_res_web_site" {
     # Always on disabled for F1 tier (not supported)
     always_on = false
     # Minimal instances for cost control
-    minimum_tls_version = 1.2
+    minimum_tls_version = 1.3
     # F1 free sku does not support 64 bit worker
     use_32_bit_worker = true
+    
+    # Public web traffic restrictions (CDN only)
+    ip_restriction = local.all_ip_restrictions
+
+    # SCM/Kudu/Deployment access for Azure platform management
+    scm_ip_restriction = {
+      allow_azure_cloud = {
+        action      = "Allow"
+        service_tag = "AzureCloud"
+        priority    = 100
+        name        = "AllowAzurePlatform"
+      }
+    }
   }
 
   # Application Insights integration for monitoring (optional for demo)

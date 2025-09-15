@@ -7,6 +7,12 @@ data "cloudflare_zone" "main" {
   zone_id = var.cloudflare_zone_id
 }
 
+# Data source to fetch current Cloudflare IP ranges
+data "cloudflare_ip_ranges" "cloudflare" {
+  # This data source retrieves all current Cloudflare IPv4 and IPv6 CIDR blocks
+  # It automatically stays current with Cloudflare's IP range updates
+}
+
 resource "cloudflare_dns_record" "hello_cname" {
   zone_id = var.cloudflare_zone_id
   name    = "hello"

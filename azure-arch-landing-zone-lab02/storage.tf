@@ -20,6 +20,9 @@ resource "azurerm_storage_account" "example" {
   }
 
   tags = local.tags
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # Storage Container for Function App deployment packages

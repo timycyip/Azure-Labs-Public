@@ -16,6 +16,10 @@ resource "azurerm_resource_group" "example" {
   location = var.location
   name     = module.naming.resource_group.name_unique
   tags     = local.tags
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 
