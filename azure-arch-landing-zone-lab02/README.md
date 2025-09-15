@@ -1,7 +1,7 @@
 # azure-arch-landing-zone-lab02 - Application Landing Zone "Online"
 Description: Azure Landing Zone - Application Zone
 
-This zone deploys a Python Flask web application from GitHub, hosted on Azure App Service with Application Insights monitoring, using Azure Verified Module (AVM)
+This zone deploys a Python Flask web application from GitHub, hosted on Azure App Service with Application Insights monitoring, using Azure Verified Module (AVM) as template. This zone is dedicated to this application only, with policy deployment controlled by the platform-management zone.
 
 ## Cost-Optimized Configuration
 
