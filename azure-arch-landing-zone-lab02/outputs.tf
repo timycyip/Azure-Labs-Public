@@ -34,26 +34,6 @@ output "os_type" {
   value       = azurerm_service_plan.webapp.os_type
 }
 
-output "storage_account_id" {
-  description = "The ID of the storage account"
-  value       = azurerm_storage_account.example.id
-}
-
-output "storage_account_kind" {
-  description = "The kind of storage account"
-  value       = azurerm_storage_account.example.account_kind
-}
-
-output "storage_account_name" {
-  description = "Name of the storage account created"
-  value       = azurerm_storage_account.example.name
-}
-
-output "storage_account_replication_type" {
-  description = "The replication type of storage account"
-  value       = azurerm_storage_account.example.account_replication_type
-}
-
 output "worker_count" {
   description = "The number of workers in the service plan"
   value       = azurerm_service_plan.webapp.worker_count
@@ -90,20 +70,7 @@ output "custom_domain_validation_token" {
   value       = module.azurerm_cdn_frontdoor_profile.frontdoor_custom_domains["hello_domain"].validation_token
 }
 
-# RBAC Role Assignment Information
-output "user_blob_contributor_role_assignment" {
-  description = "ID of the Storage Blob Data Contributor role assignment for current user"
-  value       = azurerm_role_assignment.user_storage_blob_contributor.id
-  sensitive   = true
-}
-
 # Web App Identity Information
-output "webapp_blob_runtime_role_assignment" {
-  description = "ID of the Storage Blob Data Contributor role assignment for Web App runtime storage access"
-  value       = azurerm_role_assignment.webapp_storage_runtime_access.id
-  sensitive   = true
-}
-
 output "web_app_principal_id" {
   description = "Principal ID of the Web App's system-assigned managed identity"
   value       = module.avm_res_web_site.system_assigned_mi_principal_id

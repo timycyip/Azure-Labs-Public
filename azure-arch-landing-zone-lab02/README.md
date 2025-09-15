@@ -1,15 +1,14 @@
 # azure-arch-landing-zone-lab02 - Application Landing Zone "Online"
 Description: Azure Landing Zone - Application Zone
 
-This zone deploys a Python Flask web application from GitHub, hosted on Azure App Service (as Web App) with Application Insights monitoring, using Azure Verified Module (AVM) as template. This zone is dedicated to this application only, with policy deployment controlled by the platform-management zone.
+This zone deploys a Python Flask web application from GitHub, hosted on Azure App Service (Web App) with Application Insights monitoring, using Azure Verified Module (AVM) as template. This zone is dedicated to this application only, with policy deployment controlled by the platform-management zone.
 
 ## Cost-Optimized Configuration
 
 - **Service Plan**: Linux F1 (Free tier) for demo purposes
-- **Storage Account**: LRS tier (~$0.056/month)
 - **Application Insights**: Basic monitoring for demo purposes
-- **Azure Front Door Standard**: ~$0.01/GB data transfer + $0.02 per 1,000,000 requests (minimal for demos, $0-2/month typical)
-- **Estimated Monthly Cost**: $0-3/month
+- **Azure Front Door Standard**: $35/month base fee + ~$0.01/GB data transfer + $0.009 per 10,000 requests
+- **Estimated Monthly Cost**: $35-37/month (primarily from Front Door base fee)
 - **Cloudflare DNS**: Register your own domain, can be used to replace Azure Front Door free of charge
 
 ## Prerequisites
@@ -234,7 +233,6 @@ This application landing zone deploys:
 
 - **Azure Web App**: Linux-based hosting with Python Flask runtime (F1 Free tier)
 - **App Service Plan**: F1 tier for cost-optimized hosting ($0/month)
-- **Azure Storage Account**: Storage for logs and potential file caching
 - **Application Insights**: Basic monitoring and telemetry
 - **GitHub Integration**: Source code deployment from GitHub repository
 - **RBAC**: System-assigned managed identity for secure access
@@ -462,12 +460,11 @@ az webapp deployment source config-zip \
 | Component | Tier | Monthly Cost | Notes |
 |-----------|------|--------------|-------|
 | **App Service Plan** | F1 | $0 | Free tier with limitations |
-| **Storage Account** | LRS | ~$0.056 | Minimal blob storage |
 | **Application Insights** | Basic | Minimal | Basic monitoring included |
-| **Azure Front Door Standard** | Standard | $0-2 | ~$0.01/GB data transfer + $0.02 per 1,000,000 requests |
+| **Azure Front Door Standard** | Standard | $35 | Base fee + minimal usage costs |
 | **Data Transfer** | N/A | $0.09/GB | First GB/month free |
 
-**Total Estimated Cost: $0-3/month (perfect for demos!)**
+**Total Estimated Cost: $35-37/month**
 
 ## Runtime Configuration
 
@@ -540,6 +537,9 @@ After deploying the application landing zone:
 For more information about Azure Landing Zones, visit:
 - [Azure Landing Zone Documentation](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/landing-zone/)
 - [Terraform Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs)
+- [Azure Web Apps for Python](https://docs.microsoft.com/en-us/azure/app-service/quickstart-python)
+
+
 ===
 Description: Azure Landing Zone - Application Zone
 
